@@ -683,7 +683,7 @@
      <item>
       <widget class="QPushButton" name="result_button">
        <property name="text">
-        <string>보정 결과 생성(개발중)</string>
+        <string>보정 결과 생성</string>
        </property>
       </widget>
      </item>
