@@ -99,7 +99,7 @@ class DataDownloader(QWidget):
         end_dt = self.dateTimeEdit_2.dateTime().toString("yyyy-MM-dd HH:mm")
 
         sensor_map = {
-            "check_PM25": "pm25",
+            "check_PM25": "pm25 AS \"pm2.5\"",
             "check_PM10": "pm10",
             "check_TEMP": "tem AS temp",
             "check_HUMI": "hum AS humi",
