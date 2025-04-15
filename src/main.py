@@ -39,9 +39,10 @@ from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from calibration.co2 import co2_calibration
 from calibration.pm import pm_cal
 from calibration.temp_humi import temp_humi_cal
-from report.calibration_report import ReportGeneratorThread
+from report.aircok_report import ReportGeneratorThread
 from extra_features.parsing.lcd_parsing import LogConverterApp
 from extra_features.downloader.data_downloader import DataDownloader
+from report.calibration_report import generate_calibration_report as export_calibration_report
 
 def resource_path(relative_path):
     if hasattr(sys, '_MEIPASS'):
@@ -91,15 +92,15 @@ class WindowClass(QMainWindow, uic.loadUiType(resource_path("ui/aircok_cal_ui.ui
         self.wolfsense_file = None
         self.aircok_files = []
         self.current_file_index = 0
-        self.calibration_results = {}
+        self.aircok_report = {}
 
         self.grimm_button.clicked.connect(self.grimm_button_clicked)
         self.testo_button.clicked.connect(self.testo_button_clicked)
         self.wolfsense_button.clicked.connect(self.wolfsense_button_clicked)
         self.aircok_button.clicked.connect(self.aircok_button_clicked)
         self.calibration_button.clicked.connect(self.calibration_button_clicked)
-        self.result_button.clicked.connect(self.generate_results)
-        self.report_button.clicked.connect(self.generate_report)
+        self.result_button.clicked.connect(self.generate_calibration_report)
+        self.report_button.clicked.connect(self.generate_aircok_report)
         self.prev_button.clicked.connect(self.previous_result)
         self.next_button.clicked.connect(self.next_result)
         self.reset_button.clicked.connect(self.reset)
@@ -194,7 +195,7 @@ class WindowClass(QMainWindow, uic.loadUiType(resource_path("ui/aircok_cal_ui.ui
 
     def _calibration_done(self, results):
         self.progress_dialog.close()
-        self.calibration_results = results
+        self.aircok_report = results
         self.current_file_index = 0
         self.display_calibration_result()
         self.calibration_thread = None
@@ -222,7 +223,7 @@ class WindowClass(QMainWindow, uic.loadUiType(resource_path("ui/aircok_cal_ui.ui
             return
 
         current_file = self.aircok_files[self.current_file_index]
-        result = self.calibration_results.get(current_file, {})
+        result = self.aircok_report.get(current_file, {})
         self.sn_number.setText(os.path.splitext(os.path.basename(current_file))[0])
         self.pm25_cal.setPlainText(",".join([f"*{v}" for _, v in result.get("pm25_correction", [])]))
         self.pm10_cal.setPlainText(",".join([f"*{v}" for _, v in result.get("pm10_correction", [])]))
@@ -256,21 +257,37 @@ class WindowClass(QMainWindow, uic.loadUiType(resource_path("ui/aircok_cal_ui.ui
         self.wolfsense_file = None
         self.aircok_files = []
         self.current_file_index = 0
-        self.calibration_results = {}
+        self.aircok_report = {}
         self.clear_text_widgets()
         self.consol.clear()
         QMessageBox.information(self, "초기화 완료", "모든 데이터와 입력값이 초기화되었습니다.")
 
-    def generate_results(self):
-        QMessageBox.information(self, "개발 중", "보정 결과 생성 기능은 현재 개발 중입니다.")
+    def generate_calibration_report(self):
+        if not self.aircok_report:
+            QMessageBox.warning(self, "데이터 없음", "보정 결과가 없습니다. 먼저 보정을 수행해주세요.")
+            return
 
-    def generate_report(self):
+        output_file, _ = QFileDialog.getSaveFileName(
+            self, "보정 보고서 저장", "calibration_report.xlsx", "Excel 파일 (*.xlsx)"
+        )
+        if not output_file:
+            return
+        if not output_file.endswith(".xlsx"):
+            output_file += ".xlsx"
+
+        try:
+            export_calibration_report(self.aircok_report, output_file)
+            QMessageBox.information(self, "완료", f"보정 보고서가 저장되었습니다:\n{output_file}")
+        except Exception as e:
+            QMessageBox.critical(self, "오류", f"파일 저장 중 오류 발생:\n{str(e)}")
+
+    def generate_aircok_report(self):
         if not self.aircok_files:
             QMessageBox.warning(self, "파일 없음", "먼저 Aircok 파일을 선택해주세요.")
             return
 
         output_file, _ = QFileDialog.getSaveFileName(
-            self, "보고서 저장", "calibration_report.xlsx", "Excel 파일 (*.xlsx)"
+            self, "보고서 저장", "aircok_report.xlsx", "Excel 파일 (*.xlsx)"
         )
         if not output_file:
             return

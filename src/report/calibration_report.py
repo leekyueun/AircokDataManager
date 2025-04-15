@@ -1,125 +1,85 @@
 import os
-import pandas as pd
-from PyQt5.QtCore import QThread, pyqtSignal
+from openpyxl import Workbook
+from openpyxl.styles import Font, Border, Side, Alignment
 
 
-def format_date_columns(df):
-    if 'date' in df.columns:
-        df['date'] = pd.to_datetime(df['date'], errors='coerce')
-        df = df.dropna(subset=['date'])
-    return df
+def to_float_safe(value):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return 0.0
 
 
-def prepare_simple_sheet(sensor_name, dfs, file_labels):
-    merged_df = pd.DataFrame()
-    valid_labels = []
+def generate_calibration_report(results: dict, output_file: str):
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "전체 평균"
 
-    for df, label in zip(dfs, file_labels):
-        if sensor_name not in df.columns or 'date' not in df.columns:
-            continue
+    # 헤더 정의
+    headers = ["SN", "pm2.5", "pm10", "temp", "humi", "co2"]
+    ws.append(headers)
 
-        temp_df = df[['date', sensor_name]].drop_duplicates('date').copy()
-        temp_df = temp_df.rename(columns={sensor_name: label})
-        valid_labels.append(label)
+    # 스타일 정의
+    bold_font = Font(bold=True)
+    thin_border = Border(
+        left=Side(style='thin'), right=Side(style='thin'),
+        top=Side(style='thin'), bottom=Side(style='thin')
+    )
+    center_align = Alignment(horizontal='center', vertical='center')
 
-        if merged_df.empty:
-            merged_df = temp_df
-        else:
-            merged_df = pd.merge(merged_df, temp_df, on='date', how='outer')
+    # 헤더 셀 스타일 적용
+    for cell in ws[1]:
+        cell.font = bold_font
+        cell.border = thin_border
+        cell.alignment = center_align
 
-    if merged_df.empty:
-        return pd.DataFrame()
+    for file_path, result in results.items():
+        sn = os.path.splitext(os.path.basename(file_path))[0]
 
-    merged_df = merged_df.dropna(subset=['date'])
-    merged_df['Date'] = merged_df['date'].dt.strftime('%Y-%m-%d')
-    merged_df['Time'] = merged_df['date'].dt.strftime('%H:%M:%S')
-    merged_df = merged_df.drop(columns=['date'])
-    return merged_df[['Date', 'Time'] + valid_labels]
+        pm25_formula = ",".join([f"*{v}" for _, v in result.get("pm25_correction", [])])
+        pm10_formula = ",".join([f"*{v}" for _, v in result.get("pm10_correction", [])])
 
+        # temp, humi → float 변환 + 10배 확대 + +기호 포함 포맷
+        temp_corr_raw = round(to_float_safe(result.get("temp_correction")) * 10, 1)
+        humi_corr_raw = round(to_float_safe(result.get("humi_correction")) * 10, 1)
 
-def merge_and_save_aircok_files(file_paths, output_file, update_callback=None):
-    dfs, file_labels = [], []
+        temp_corr = f"{temp_corr_raw:+.1f}"  # + 기호 포함
+        humi_corr = f"{humi_corr_raw:+.1f}"
 
-    for i, file in enumerate(file_paths):
-        try:
-            df = pd.read_csv(file)
-            df = format_date_columns(df)
-            dfs.append(df)
-            label = os.path.splitext(os.path.basename(file))[0]
-            file_labels.append(label)
-            if update_callback:
-                update_callback(f"파일 로드: {label}", i)
-        except Exception as e:
-            if update_callback:
-                update_callback(f"파일 로드 실패: {file} ({e})", i)
-            continue
+        co2_corr = result.get("co2_correction_str", "")
 
-    sensor_columns = sorted({col for df in dfs for col in df.columns if col != 'date'})
+        # 보정값 행
+        row_header = [sn, pm25_formula, pm10_formula, temp_corr, humi_corr, co2_corr]
+        ws.append(row_header)
 
-    with pd.ExcelWriter(output_file, engine='openpyxl') as writer:
-        for idx, sensor in enumerate(sensor_columns):
-            sensor_df = prepare_simple_sheet(sensor, dfs, file_labels)
-            if not sensor_df.empty:
-                sensor_df.to_excel(writer, sheet_name=sensor[:31], index=False)
-            if update_callback:
-                update_callback(f"센서 시트 생성: {sensor}", len(file_paths) + idx)
+        # 보정 전 정확도
+        row_pre = [
+            "보정 전",
+            f"{to_float_safe(result.get('pm25_accuracy_pre')):.0f}%",
+            f"{to_float_safe(result.get('pm10_accuracy_pre')):.0f}%",
+            f"{to_float_safe(result.get('temp_accuracy')):.0f}%",
+            f"{to_float_safe(result.get('humi_accuracy')):.0f}%",
+            f"{to_float_safe(result.get('pre_correction_accuracy')):.0f}%"
+        ]
+        ws.append(row_pre)
 
-        for i, (df, label) in enumerate(zip(dfs, file_labels)):
-            df.to_excel(writer, sheet_name=label[:31], index=False)
-            if update_callback:
-                update_callback(f"원본 시트 저장: {label}", len(file_paths) + len(sensor_columns) + i)
+        # 보정 후 정확도
+        row_post = [
+            "보정 후",
+            f"{to_float_safe(result.get('pm25_accuracy_post')):.0f}%",
+            f"{to_float_safe(result.get('pm10_accuracy_post')):.0f}%",
+            f"{to_float_safe(result.get('temp_corrected_accuracy')):.0f}%",
+            f"{to_float_safe(result.get('humi_corrected_accuracy')):.0f}%",
+            f"{to_float_safe(result.get('post_correction_accuracy')):.0f}%"
+        ]
+        ws.append(row_post)
 
+        # 공백 줄
+        ws.append([])
 
-class ReportGeneratorThread(QThread):
-    progress = pyqtSignal(str, int)
-    finished = pyqtSignal(str)
-    error = pyqtSignal(str)
+    # 전체 셀 가운데 정렬
+    for row in ws.iter_rows(min_row=2, max_row=ws.max_row):
+        for cell in row:
+            cell.alignment = center_align
 
-    def __init__(self, aircok_files, output_file):
-        super().__init__()
-        self.aircok_files = aircok_files
-        self.output_file = output_file
-
-    def run(self):
-        try:
-            dfs = []
-            file_labels = []
-            num_files = len(self.aircok_files)
-
-            file_load_weight = 0.3
-            sensor_sheet_weight = 0.3
-            original_sheet_weight = 0.3
-
-            for i, file in enumerate(self.aircok_files):
-                df = pd.read_csv(file)
-                df = format_date_columns(df)
-                dfs.append(df)
-                label = os.path.splitext(os.path.basename(file))[0]
-                file_labels.append(label)
-                percent = int((i + 1) / num_files * file_load_weight * 100)
-                self._emit_progress(f"파일 로드: {label}", percent)
-
-            sensor_columns = sorted({col for df in dfs for col in df.columns if col != 'date'})
-            num_sensors = len(sensor_columns)
-
-            with pd.ExcelWriter(self.output_file, engine='openpyxl') as writer:
-                for idx, sensor in enumerate(sensor_columns):
-                    sensor_df = prepare_simple_sheet(sensor, dfs, file_labels)
-                    if not sensor_df.empty:
-                        sensor_df.to_excel(writer, sheet_name=sensor[:31], index=False)
-                    percent = int(file_load_weight * 100 + (idx + 1) / num_sensors * sensor_sheet_weight * 100)
-                    self._emit_progress(f"센서 시트 생성: {sensor}", percent)
-
-                for i, (df, label) in enumerate(zip(dfs, file_labels)):
-                    df.to_excel(writer, sheet_name=label[:31], index=False)
-                    percent = int(file_load_weight * 100 + sensor_sheet_weight * 100 +
-                                  (i + 1) / num_files * original_sheet_weight * 100)
-                    self._emit_progress(f"원본 시트 저장: {label}", percent)
-
-            self._emit_progress("완료", 100)
-            self.finished.emit(self.output_file)
-        except Exception as e:
-            self.error.emit(str(e))
-
-    def _emit_progress(self, status_text, step_index):
-        self.progress.emit(status_text, step_index)
+    wb.save(output_file)
