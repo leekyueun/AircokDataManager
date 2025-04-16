@@ -140,3 +140,4 @@ XGBoost 기반의 알고리즘으로 3단계에 걸쳐 보정을 수행합니다
 ## 🌐 Other Languages
 
 - 🇺🇸 [English README](README.en.md)
+- 🇯🇵 [日本語のREADME](README.ja.md)
