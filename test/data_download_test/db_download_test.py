@@ -78,8 +78,8 @@ class DataDownloader(QWidget):
             QMessageBox.critical(self, "오류", "DB를 선택해주세요.")
             return None
 
-        print(f"🧪 선택된 DB: {db_choice}")
-        print(f"🧪 로드된 DB URL: {db_url}")
+        print(f"선택된 DB: {db_choice}")
+        print(f"로드된 DB URL: {db_url}")
 
         if not db_url or db_url.strip() == "":
             QMessageBox.critical(self, "오류", f"{db_choice}의 DB URL을 .env 파일에서 찾을 수 없습니다.")

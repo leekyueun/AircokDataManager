@@ -79,7 +79,7 @@
      <item>
       <widget class="QPushButton" name="calibration_button">
        <property name="text">
-        <string>calibration 진행</string>
+        <string>calibration</string>
        </property>
       </widget>
      </item>
@@ -690,7 +690,7 @@
      <item>
       <widget class="QPushButton" name="report_button">
        <property name="text">
-        <string>보고서 생성(aircok 파일만 가능)</string>
+        <string>보고서 생성</string>
        </property>
       </widget>
      </item>
@@ -792,9 +792,9 @@ p, li { white-space: pre-wrap; }
    <widget class="QLabel" name="label_18">
     <property name="geometry">
      <rect>
-      <x>860</x>
+      <x>870</x>
       <y>569</y>
-      <width>241</width>
+      <width>221</width>
       <height>21</height>
      </rect>
     </property>
@@ -804,7 +804,7 @@ p, li { white-space: pre-wrap; }
      </font>
     </property>
     <property name="text">
-     <string>v1.0.0-dev.3 (2024.12) Developed by 에어콕 기술영업팀</string>
+     <string>v1.0.0 (2025.04) Developed by 에어콕 기술영업팀</string>
     </property>
    </widget>
    <widget class="QTextEdit" name="consol">
@@ -873,12 +873,12 @@ p, li { white-space: pre-wrap; }
   </action>
   <action name="lcd_loger_parsing">
    <property name="text">
-    <string>LCD 로거 데이터 변환</string>
+    <string>Aircok Log Converter</string>
    </property>
   </action>
   <action name="aircok_data_downloader">
    <property name="text">
-    <string>에어콕 데이터 다운로더</string>
+    <string>Aircok Data Extractor</string>
    </property>
   </action>
  </widget>
