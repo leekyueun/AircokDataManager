@@ -9,7 +9,6 @@ def format_date_columns(df):
         df = df.dropna(subset=['date'])
     return df
 
-
 def prepare_simple_sheet(sensor_name, dfs, file_labels):
     merged_df = pd.DataFrame()
     valid_labels = []
@@ -36,6 +35,29 @@ def prepare_simple_sheet(sensor_name, dfs, file_labels):
     merged_df = merged_df.drop(columns=['date'])
     return merged_df[['Date', 'Time'] + valid_labels]
 
+def get_ordered_sensors(dfs):
+    priority_order = ['pm2.5', 'pm10', 'temp', 'humi', 'hcho', 'noise', 'co2', 'co', 'vocs', 'no2']
+    all_sensors = {col for df in dfs for col in df.columns if col != 'date'}
+    ordered = [s for s in priority_order if s in all_sensors]
+    remaining = sorted(all_sensors - set(ordered))
+    return ordered + remaining
+
+def prepare_summary_sheet(dfs, file_labels):
+    summary_rows = []
+
+    for df, label in zip(dfs, file_labels):
+        numeric_cols = [col for col in df.columns if col != 'date']
+        if not numeric_cols:
+            continue
+        avg_row = df[numeric_cols].mean(numeric_only=True).round(1)
+        avg_row['SN'] = label
+        summary_rows.append(avg_row)
+
+    if summary_rows:
+        summary_df = pd.DataFrame(summary_rows)
+        cols = ['SN'] + [col for col in summary_df.columns if col != 'SN']
+        return summary_df[cols]
+    return pd.DataFrame()
 
 def merge_and_save_aircok_files(file_paths, output_file, update_callback=None):
     dfs, file_labels = [], []
@@ -54,7 +76,7 @@ def merge_and_save_aircok_files(file_paths, output_file, update_callback=None):
                 update_callback(f"파일 로드 실패: {file} ({e})", i)
             continue
 
-    sensor_columns = sorted({col for df in dfs for col in df.columns if col != 'date'})
+    sensor_columns = get_ordered_sensors(dfs)
 
     with pd.ExcelWriter(output_file, engine='openpyxl') as writer:
         for idx, sensor in enumerate(sensor_columns):
@@ -64,11 +86,16 @@ def merge_and_save_aircok_files(file_paths, output_file, update_callback=None):
             if update_callback:
                 update_callback(f"센서 시트 생성: {sensor}", len(file_paths) + idx)
 
+        summary_df = prepare_summary_sheet(dfs, file_labels)
+        if not summary_df.empty:
+            summary_df.to_excel(writer, sheet_name='Summary_by_SN', index=False)
+            if update_callback:
+                update_callback("요약 시트 생성: Summary_by_SN", len(file_paths) + len(sensor_columns))
+
         for i, (df, label) in enumerate(zip(dfs, file_labels)):
             df.to_excel(writer, sheet_name=label[:31], index=False)
             if update_callback:
                 update_callback(f"원본 시트 저장: {label}", len(file_paths) + len(sensor_columns) + i)
-
 
 class ReportGeneratorThread(QThread):
     progress = pyqtSignal(str, int)
@@ -88,7 +115,8 @@ class ReportGeneratorThread(QThread):
 
             file_load_weight = 0.3
             sensor_sheet_weight = 0.3
-            original_sheet_weight = 0.3
+            summary_sheet_weight = 0.1
+            original_sheet_weight = 0.29
 
             for i, file in enumerate(self.aircok_files):
                 df = pd.read_csv(file)
@@ -99,7 +127,7 @@ class ReportGeneratorThread(QThread):
                 percent = int((i + 1) / num_files * file_load_weight * 100)
                 self._emit_progress(f"파일 로드: {label}", percent)
 
-            sensor_columns = sorted({col for df in dfs for col in df.columns if col != 'date'})
+            sensor_columns = get_ordered_sensors(dfs)
             num_sensors = len(sensor_columns)
 
             with pd.ExcelWriter(self.output_file, engine='openpyxl') as writer:
@@ -110,14 +138,20 @@ class ReportGeneratorThread(QThread):
                     percent = int(file_load_weight * 100 + (idx + 1) / num_sensors * sensor_sheet_weight * 100)
                     self._emit_progress(f"센서 시트 생성: {sensor}", percent)
 
+                summary_df = prepare_summary_sheet(dfs, file_labels)
+                if not summary_df.empty:
+                    summary_df.to_excel(writer, sheet_name='센서 평균', index=False)
+                    self._emit_progress("평균 생성", int(file_load_weight * 100 + sensor_sheet_weight * 100 + summary_sheet_weight * 100))
+
                 for i, (df, label) in enumerate(zip(dfs, file_labels)):
                     df.to_excel(writer, sheet_name=label[:31], index=False)
-                    percent = int(file_load_weight * 100 + sensor_sheet_weight * 100 +
+                    percent = int(file_load_weight * 100 + sensor_sheet_weight * 100 + summary_sheet_weight * 100 +
                                   (i + 1) / num_files * original_sheet_weight * 100)
                     self._emit_progress(f"원본 시트 저장: {label}", percent)
 
             self._emit_progress("완료", 100)
             self.finished.emit(self.output_file)
+
         except Exception as e:
             self.error.emit(str(e))
 
