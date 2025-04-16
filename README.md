@@ -1,22 +1,33 @@
 # Aircok Data Manager
-**버전: v1.0.0-rc.3 (2025-04-09)**
+**버전: v1.0.1 (2025-04)**
 
 미세먼지, 온습도, CO2 데이터를 비교 및 보정하여 정확도를 향상시키고 보고서를 생성할 수 있는 도구입니다.
 
 ## 주요 기능
 ### 1. 파일 로드
-지원되는 파일 형식(grimm, testo, wolfsense, aircok)을 선택하여 데이터를 불러옵니다.  
-- 각 장비의 데이터 파일을 쉽게 탐색하고 로드할 수 있습니다.
+기준데이터, 에어콕 데이터 파일을 선택하여 데이터를 불러옵니다.
+각 장비의 데이터 파일을 쉽게 탐색하고 로드할 수 있습니다.
 
 ### 2. 보정 수행
-"Calibration 진행" 버튼을 눌러 데이터 보정을 수행합니다.  
-- 자동화된 보정 알고리즘을 통해 데이터를 정밀하게 보정합니다.
+"Calibration" 버튼을 눌러 데이터 보정을 수행합니다.  
+자동화된 보정 알고리즘을 통해 데이터를 정밀하게 보정합니다.
 
 ### 3. 결과 확인
-- 화면에서 데이터를 확인하고 이전/다음 버튼으로 탐색할 수 있습니다.
+화면에서 데이터를 확인하고 이전/다음 버튼으로 탐색할 수 있습니다.
 
-### 4. 보고서 생성
-- "보고서 생성" 버튼을 눌러 병합된 데이터를 Excel 파일로 저장합니다.
+### 4. 보정 결과 생성
+"보정 결과 생성" 버튼을 눌러 보정 결과를 Excel 파일로 저장합니다.
+
+### 5. 보고서 생성
+"보고서 생성" 버튼을 눌러 병합된 데이터를 Excel 파일로 저장합니다.
+
+## 추가 기능
+### 1. Aircok Log Converter
+에어콕의 LCD 모델은 로그 데이터를 txt 파일의 형태로 SD카드에 저장합니다.
+이 데이터는 보기 힘든 구조로 저장되기에 해당 기능으로 CSV 파일로 변환하여 저장합니다.
+
+### 2. Aircok Data Extractor
+데이터 베이스에 저장된 에어콕의 데이터를 손쉽게 다운받을수 있습니다.
 
 
 ## Version History
@@ -81,27 +92,27 @@
 ## 메인 화면
 프로그램의 메인 화면 예시입니다.
 
-![image](https://github.com/user-attachments/assets/1805ff97-5277-4b53-9010-b68bcf9ec1a3)
+![image](https://github.com/user-attachments/assets/5a5bf2dd-024c-4784-8bc7-1405696ee52d)
 
 ## Aircok Data Extractor 화면
 Aircok Data Extractor의 화면 예시입니다.
 
-![image](https://github.com/user-attachments/assets/36714173-c3a2-4de7-b434-d19fa88f81d3)
+![image](https://github.com/user-attachments/assets/675aaa13-0c09-40d0-9d79-c679a3e02e67)
 
 
 ## Aircok Log Converter 화면
 Aircok Log Converter의 화면 예시입니다.
 
-![image](https://github.com/user-attachments/assets/f63024e3-56a7-4f59-95a1-d00e8f8db302)
+![image](https://github.com/user-attachments/assets/8fc250bf-309c-42f2-a916-169620c75000)
 
 ## 실행 방법
 1. Aircok Data Manager.zip 파일을 다운로드 합니다.
-2. 압축을 해제한 후, 실행 파일(Aircok Data Manager v1.0.0-rc.2.exe)을 실행합니다.
+2. 압축을 해제한 후, 실행 파일(Aircok Data Manager v1.0.1.exe)을 실행합니다.
 
 ## 권장 사양
 - **운영 체제(OS):** Windows 11 이상
 - **메모리(RAM):** 8GB 이상
 
-> **주의:** 해당 프로그램은 현재 개발 중인 알파 버전입니다.  
+> **주의:** 해당 프로그램은 현재 테스트가 충분히 완료되지 않았습니다.
 > 안정성이 완벽히 보장되지 않으며, 권장 사양 이하의 환경에서는  
 > 실행이 불가능하거나 예기치 않은 버그가 발생할 수 있습니다.
