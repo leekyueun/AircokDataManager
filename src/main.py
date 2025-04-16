@@ -28,6 +28,10 @@
 # 2025-04-15
 # 보고서 센서 평균 추가
 # 보정 결과 다운로드 기능 추가
+#
+# 2025-04-16
+# 미세먼지 보정 부분 수정
+# co2 보정 단위 버그 수정
 
 import os
 import sys
@@ -87,7 +91,7 @@ class WindowClass(QMainWindow, uic.loadUiType(resource_path("ui/aircok_cal_ui.ui
         super().__init__()
         self.setupUi(self)
         self.setFixedSize(self.width(), self.height())
-        self.setWindowTitle("Aircok Data Manager v1.0.0 (2025.04)")
+        self.setWindowTitle("Aircok Data Manager v1.0.1 (2025.04)")
         self.setWindowIcon(QIcon(resource_path("img/smartaircok.ico")))
 
         self.grimm_file = None
