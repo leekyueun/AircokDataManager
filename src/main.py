@@ -25,6 +25,9 @@
 # 2025-04-09
 # 전체 기능 최적화 및 성능 개선
 #
+# 2025-04-15
+# 보고서 센서 평균 추가
+# 보정 결과 다운로드 기능 추가
 
 import os
 import sys
@@ -84,7 +87,7 @@ class WindowClass(QMainWindow, uic.loadUiType(resource_path("ui/aircok_cal_ui.ui
         super().__init__()
         self.setupUi(self)
         self.setFixedSize(self.width(), self.height())
-        self.setWindowTitle("Aircok Data Manager v1.0.0-rc.3 (2025.04)")
+        self.setWindowTitle("Aircok Data Manager v1.0.0 (2025.04)")
         self.setWindowIcon(QIcon(resource_path("img/smartaircok.ico")))
 
         self.grimm_file = None

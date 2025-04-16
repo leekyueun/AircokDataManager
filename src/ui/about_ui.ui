@@ -42,8 +42,8 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>498</width>
-      <height>348</height>
+      <width>481</width>
+      <height>492</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
@@ -51,30 +51,39 @@
       <widget class="QLabel" name="versionHistoryLabel">
        <property name="text">
         <string>
+         v1.0.0
+         - 정식 릴리즈
+         - 전체 기능 안정화 완료
 
-v1.0.0-rc.3 (2025.04)
-- 프로그램 전체 기능 성능 개선
+         v1.0.0-rc.1
+         - 프로그램 전체 기능 성능 개선
 
-v1.0.0-rc.2 (2025.04)
-- 운영/테스트 DB 전환 기능 추가
-- DB 서버 선택 추가
+         v1.0.0-beta
+         - 프로그램 성능 테스트
+         - 기능 안정성 테스트
 
-v1.0.0-rc.1 (2025-03-28)
-- 에어콕 보고서 버그 수정 및 최적화
-- 에어콕 데이터 다운로드 추가
+         v1.0.0-alpha.5
+         - 보정 결과 다운로드 기능 추가
+         - 에어콕 보고서 센서별 평균 기능 추가
 
-v1.0.0-alpha.3 (2024-12-05)
-- LCD 로그 데이터 변환 기능 추가
-- 초기화 기능 추가
+         v1.0.0-alpha.4
+         - 운영/테스트 DB 전환 기능 추가
 
-v1.0.0-alpha.2 (2024-12-03)
-- 에어콕 파일 데이터 보고서 기능 추가
+         v1.0.0-alpha.3
+         - 에어콕 보고서 버그 수정 및 최적화
+         - 에어콕 데이터 다운로드 추가
 
-v1.0.0-alpha.1 (2024-11-22)
-- co2 보정 수치 오류 해결
+         v1.0.0-alpha.2
+         - LCD 제품 로그 데이터 변환 기능 추가
+         - 초기화 기능 추가
 
-v1.0.0-alpha (2024-11-19)
-- 최초 버전 보정 기능만 작동</string>
+         v1.0.0-alpha.1
+         - 에어콕 보고서 기능 추가
+         - co2 보정 수치 오류 해결
+
+         v1.0.0-alpha
+         - 최초 버전 보정 기능만 작동
+        </string>
        </property>
        <property name="textFormat">
         <enum>Qt::PlainText</enum>
@@ -138,7 +147,7 @@ v1.0.0-alpha (2024-11-19)
     </font>
    </property>
    <property name="text">
-    <string>Aircok Data Manager v1.0.0-rc.2 (2025.04)</string>
+    <string>Aircok Data Manager v1.0.0 (2025.04)</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignCenter</set>

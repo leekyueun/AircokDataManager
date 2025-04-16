@@ -1,249 +1,79 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Dialog</class>
- <widget class="QDialog" name="Dialog">
-  <property name="enabled">
-   <bool>true</bool>
-  </property>
+ <class>GuideDialog</class>
+ <widget class="QDialog" name="GuideDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>630</width>
-    <height>380</height>
+    <width>600</width>
+    <height>450</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>630</width>
-    <height>380</height>
+    <width>600</width>
+    <height>450</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>630</width>
-    <height>380</height>
+    <width>600</width>
+    <height>450</height>
    </size>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>사용 가이드</string>
   </property>
-  <widget class="QLabel" name="label">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>10</y>
-     <width>71</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>12</pointsize>
-    </font>
-   </property>
-   <property name="text">
-    <string>사용 설명</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_2">
-   <property name="geometry">
-    <rect>
-     <x>40</x>
-     <y>120</y>
-     <width>511</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>12</pointsize>
-    </font>
-   </property>
-   <property name="text">
-    <string>4. AIRCOK 파일을 선택합니다. 여러개의 파일도 선택 가능합니다</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_3">
-   <property name="geometry">
-    <rect>
-     <x>40</x>
-     <y>30</y>
-     <width>511</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>12</pointsize>
-    </font>
-   </property>
-   <property name="text">
-    <string>1. 미세먼지 기준 데이터 파일을 선택합니다.</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_4">
-   <property name="geometry">
-    <rect>
-     <x>40</x>
-     <y>60</y>
-     <width>511</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>12</pointsize>
-    </font>
-   </property>
-   <property name="text">
-    <string>2. 온습도 기준 데이터 파일을 선택합니다.</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_5">
-   <property name="geometry">
-    <rect>
-     <x>40</x>
-     <y>90</y>
-     <width>511</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>12</pointsize>
-    </font>
-   </property>
-   <property name="text">
-    <string>3. CO2 기준 데이터 파일을 선택합니다</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_6">
-   <property name="geometry">
-    <rect>
-     <x>40</x>
-     <y>150</y>
-     <width>511</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>12</pointsize>
-    </font>
-   </property>
-   <property name="text">
-    <string>5. calibration 진행 버튼을 눌러 calibration을 진행합니다</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_7">
-   <property name="geometry">
-    <rect>
-     <x>40</x>
-     <y>180</y>
-     <width>511</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>12</pointsize>
-    </font>
-   </property>
-   <property name="text">
-    <string>6. 프로그램에 출력된 보정 결과를 확인하여 제품 보정을 진행합니다</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_8">
-   <property name="geometry">
-    <rect>
-     <x>40</x>
-     <y>260</y>
-     <width>511</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>12</pointsize>
-    </font>
-   </property>
-   <property name="text">
-    <string>보정결과 생성은 보정값을 정리하여 EXCEL 파일로 저장합니다(개발중)</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_9">
-   <property name="geometry">
-    <rect>
-     <x>40</x>
-     <y>290</y>
-     <width>541</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>12</pointsize>
-    </font>
-   </property>
-   <property name="text">
-    <string>보고서 생성은 모든 파일을 병합하여 EXCEL 파일로 저장합니다(부분 작동)</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_10">
-   <property name="geometry">
-    <rect>
-     <x>40</x>
-     <y>230</y>
-     <width>511</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>12</pointsize>
-    </font>
-   </property>
-   <property name="text">
-    <string>이전, 다음 버튼으로 각 제품마다 보정값을 확인할수 있습니다</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_11">
-   <property name="geometry">
-    <rect>
-     <x>290</x>
-     <y>310</y>
-     <width>291</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>9</pointsize>
-    </font>
-   </property>
-   <property name="text">
-    <string>보고서 생성 기능은 에어콕 파일만 병합이 가능합니다</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_12">
-   <property name="geometry">
-    <rect>
-     <x>40</x>
-     <y>340</y>
-     <width>541</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>12</pointsize>
-    </font>
-   </property>
-   <property name="text">
-    <string>에어콕 데이터 다운로더는 생각공장 사무실 에서만 사용이 가능합니다.</string>
-   </property>
-  </widget>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QLabel" name="label_title">
+     <property name="text">
+      <string>📘 에어콕 프로그램 사용 가이드</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">font-weight: bold; font-size: 16px;</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QTextEdit" name="text_guide">
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">font-size: 13px;</string>
+     </property>
+     <property name="text">
+      <string notr="true">
+      데이터 보정 기능 사용법.
+
+      1. 기준 장비 데이터와 에어콕 데이터를 선택합니다. (에어콕 파일은 여러 개 선택 가능)
+      2. 'Calibration' 버튼을 눌러 제품 보정을 진행합니다.
+      3. 출력된 보정 결과를 확인하여 제품 보정을 진행합니다. (이전/다음 버튼으로 탐색 가능)
+
+      보정 결과 생성:
+      → 제품별 보정값이 한 번에 정리되어 Excel 파일로 저장됩니다.
+
+      보고서 생성:
+      → 데이터를 병합하여 Excel 파일로 저장됩니다.
+      → 파일 구조는 "데이터 비교", "데이터 평균값", "원본 데이터"로 구성됩니다.
+
+      Aircok Log Converter:
+      → 에어콕 LCD 제품의 TXT 로그 데이터를 CSV 파일로 변환합니다.
+
+      Aircok Data Extractor:
+      → 에어콕 제품의 데이터를 다운로드합니다.
+      → 서버, SN, 기간, 센서를 선택하여 다운로드하며,
+      → *생각공장 815호, 816호에서만 DB 연결이 가능합니다.*
+      </string>
+     </property>
+    </widget>
+   </item>
+  </layout>
  </widget>
  <resources/>
  <connections/>
