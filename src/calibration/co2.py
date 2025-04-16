@@ -18,8 +18,8 @@ def co2_calibration(co2_file_path, aircok_file_path):
     pre_error = (merged['co2_x'] - merged['co2_y']).abs().mean()
     pre_acc = 100 - (pre_error / merged['co2_x'].mean()) * 100
 
-    mean_bias = (merged['co2_y'] - merged['co2_x']).mean()
-    aircok_data['co2_corrected'] = aircok_data['co2'] - mean_bias
+    mean_bias = (merged['co2_x'] - merged['co2_y']).mean()
+    aircok_data['co2_corrected'] = aircok_data['co2'] + mean_bias
 
     corrected = pd.merge(co2_data, aircok_data[['date', 'co2_corrected']], on='date', how='inner').dropna()
     post_error = (corrected['co2'] - corrected['co2_corrected']).abs().mean()
