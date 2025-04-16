@@ -136,5 +136,5 @@ Uses an XGBoost model and a 3-step process:
 
 ---
 
-> 🇰🇷 [한국어 README 보기](README.md)
+> 🇰🇷 [한국어 README 보기](README.md)   
 > 🇯🇵 [日本語のREADME](README.ja.md)
