@@ -32,6 +32,9 @@
 # 2025-04-16
 # 미세먼지 보정 부분 수정
 # co2 보정 단위 버그 수정
+#
+# 2025-05-29
+# 누적 보정값 계산 기능 추가
 
 import os
 import sys
@@ -50,6 +53,8 @@ from report.aircok_report import ReportGeneratorThread
 from extra_features.parsing.lcd_parsing import LogConverterApp
 from extra_features.downloader.data_downloader import DataDownloader
 from report.calibration_report import generate_calibration_report as export_calibration_report
+from report.re_cal import load_previous_corrections, apply_correction_merge
+
 
 def resource_path(relative_path):
     if hasattr(sys, '_MEIPASS'):
@@ -91,7 +96,7 @@ class WindowClass(QMainWindow, uic.loadUiType(resource_path("ui/aircok_cal_ui.ui
         super().__init__()
         self.setupUi(self)
         self.setFixedSize(self.width(), self.height())
-        self.setWindowTitle("Aircok Data Manager v1.0.1 (2025.04)")
+        self.setWindowTitle("Aircok Data Manager v1.1.0 (2025.05)")
         self.setWindowIcon(QIcon(resource_path("img/smartaircok.ico")))
 
         self.grimm_file = None
@@ -111,6 +116,7 @@ class WindowClass(QMainWindow, uic.loadUiType(resource_path("ui/aircok_cal_ui.ui
         self.prev_button.clicked.connect(self.previous_result)
         self.next_button.clicked.connect(self.next_result)
         self.reset_button.clicked.connect(self.reset)
+        self.re_calibration_button.clicked.connect(self.recalculate_corrections)
 
         self.user_guide_window = None
         self.actionUser_guide.triggered.connect(self.open_user_guide)
@@ -332,6 +338,71 @@ class WindowClass(QMainWindow, uic.loadUiType(resource_path("ui/aircok_cal_ui.ui
         self.progress_dialog.close()
         QMessageBox.critical(self, "오류", f"보고서 생성 중 오류 발생: {error_message}")
         self.thread = None
+
+    def generate_aircok_report(self):
+        if not self.aircok_files:
+            QMessageBox.warning(self, "파일 없음", "먼저 Aircok 파일을 선택해주세요.")
+            return
+
+        output_file, _ = QFileDialog.getSaveFileName(
+            self, "보고서 저장", "aircok_report.xlsx", "Excel 파일 (*.xlsx)"
+        )
+        if not output_file:
+            return
+        if not output_file.endswith(".xlsx"):
+            output_file += ".xlsx"
+
+        self.progress_dialog = QProgressDialog("보고서를 생성 중입니다...", None, 0, 100, self)
+        self.progress_dialog.setWindowTitle("진행 중")
+        self.progress_dialog.setWindowModality(Qt.WindowModal)
+        self.progress_dialog.setCancelButton(None)
+        self.progress_dialog.setMinimumDuration(0)
+        self.progress_dialog.setWindowFlags(self.progress_dialog.windowFlags() & ~Qt.WindowCloseButtonHint)
+        self.progress_dialog.setFixedSize(self.progress_dialog.sizeHint())
+
+        self.progress_dialog.show()
+
+        self.thread = ReportGeneratorThread(self.aircok_files, output_file)
+        self.thread.progress.connect(self._update_report_progress)
+        self.thread.finished.connect(self._report_generation_finished)
+        self.thread.finished.connect(self.thread.deleteLater)
+        self.thread.error.connect(self._report_generation_failed)
+        self.thread.start()
+
+    def _update_report_progress(self, status_text, step_index):
+        self.progress_dialog.setLabelText(status_text)
+        self.progress_dialog.setValue(step_index)
+        QApplication.processEvents()
+
+    def _report_generation_finished(self, file_path):
+        self.progress_dialog.close()
+        QMessageBox.information(self, "성공", f"보고서 생성 완료: {file_path}")
+        self.thread = None
+
+    def _report_generation_failed(self, error_message):
+        self.progress_dialog.close()
+        QMessageBox.critical(self, "오류", f"보고서 생성 중 오류 발생: {error_message}")
+        self.thread = None
+
+    def recalculate_corrections(self):
+        if not self.aircok_report:
+            QMessageBox.warning(self, "데이터 없음", "먼저 보정을 완료한 후에 재계산을 진행해주세요.")
+            return
+
+        prev_file, _ = QFileDialog.getOpenFileName(self, "이전 보정 보고서 선택", "", "Excel 파일 (*.xlsx)")
+        if not prev_file:
+            return
+
+        try:
+            prev_data = load_previous_corrections(prev_file)
+            apply_correction_merge(self.aircok_report, prev_data)
+        except Exception as e:
+            QMessageBox.critical(self, "오류", str(e))
+            return
+
+        QMessageBox.information(self, "완료", "누적 보정값이 적용되었습니다.")
+        self.consol.append("보정값 누적 계산 완료. 결과는 화면에 반영되었습니다.")
+        self.display_calibration_result()
 
 class UserGuideWindow(QDialog):
     def __init__(self):

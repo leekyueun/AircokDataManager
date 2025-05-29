@@ -51,6 +51,9 @@
       <widget class="QLabel" name="versionHistoryLabel">
        <property name="text">
         <string>
+         v1.1.0
+         - 누적 보정값 계산 기능 추가
+
          v1.0.1
          - pm, co2 보정 부분 오류 수정
 
