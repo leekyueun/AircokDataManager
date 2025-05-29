@@ -13,7 +13,7 @@ def to_float_safe(value):
 def generate_calibration_report(results: dict, output_file: str):
     wb = Workbook()
     ws = wb.active
-    ws.title = "전체 평균"
+    ws.title = "보정값"
 
     # 헤더 정의
     headers = ["SN", "pm2.5", "pm10", "temp", "humi", "co2"]
@@ -46,7 +46,7 @@ def generate_calibration_report(results: dict, output_file: str):
         temp_corr = f"{temp_corr_raw:+.1f}"  # + 기호 포함
         humi_corr = f"{humi_corr_raw:+.1f}"
 
-        co2_corr = result.get("co2_correction_str", "")
+        co2_corr = result.get("co2_correction", "")
 
         # 보정값 행
         row_header = [sn, pm25_formula, pm10_formula, temp_corr, humi_corr, co2_corr]

@@ -15,7 +15,7 @@ def prepare_grimm_data(path):
     return df.dropna()
 
 def prepare_aircok_data(path):
-    df = pd.read_csv(path, usecols=['date', 'pm25', 'pm10'])
+    df = pd.read_csv(path, usecols=['date', 'pm2.5', 'pm10'])
     df['date'] = pd.to_datetime(df['date'], errors='coerce')
     return df.dropna()
 
@@ -34,7 +34,7 @@ def pm_cal(grimm_file_path, aircok_file_path):
 
     bins = [10, 30, 60, 100, 200]
     labels = ['10-30', '31-60', '61-100', '101-200']
-    merged['pm25_range'] = pd.cut(merged['pm25'], bins=bins, labels=labels)
+    merged['pm25_range'] = pd.cut(merged['pm2.5'], bins=bins, labels=labels)
     merged['pm10_range'] = pd.cut(merged['pm10'], bins=bins, labels=labels)
 
     correction_factors_pm25, correction_factors_pm10 = [], []
@@ -43,17 +43,17 @@ def pm_cal(grimm_file_path, aircok_file_path):
         # PM2.5
         subset_25 = merged[merged['pm25_range'] == label]
         if not subset_25.empty:
-            X_25 = subset_25[['pm25', 'pm10']]
-            y_25 = subset_25['grimm_pm25'] / subset_25['pm25']
+            X_25 = subset_25[['pm2.5', 'pm10']]
+            y_25 = subset_25['grimm_pm25'] / subset_25['pm2.5']
             factor_25 = train_and_predict_correction_factor(X_25, y_25)
             if factor_25:
                 correction_factors_pm25.append((label, factor_25))
-                merged.loc[merged['pm25_range'] == label, 'corrected_pm25'] = subset_25['pm25'] * factor_25
+                merged.loc[merged['pm25_range'] == label, 'corrected_pm25'] = subset_25['pm2.5'] * factor_25
 
         # PM10
         subset_10 = merged[merged['pm10_range'] == label]
         if not subset_10.empty:
-            X_10 = subset_10[['pm25', 'pm10']]
+            X_10 = subset_10[['pm2.5', 'pm10']]
             y_10 = subset_10['grimm_pm10'] / subset_10['pm10']
             factor_10 = train_and_predict_correction_factor(X_10, y_10)
             if factor_10:
@@ -68,7 +68,7 @@ def pm_cal(grimm_file_path, aircok_file_path):
     result = {
         "pm25_correction": correction_factors_pm25,
         "pm10_correction": correction_factors_pm10,
-        "pm25_accuracy_pre": round(calc_accuracy(merged['grimm_pm25'], merged['pm25']), 2),
+        "pm25_accuracy_pre": round(calc_accuracy(merged['grimm_pm25'], merged['pm2.5']), 2),
         "pm25_accuracy_post": round(calc_accuracy(merged['grimm_pm25'], merged['corrected_pm25']), 2),
         "pm10_accuracy_pre": round(calc_accuracy(merged['grimm_pm10'], merged['pm10']), 2),
         "pm10_accuracy_post": round(calc_accuracy(merged['grimm_pm10'], merged['corrected_pm10']), 2)

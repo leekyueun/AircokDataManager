@@ -8,11 +8,12 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 
-from test_calibration.co2_test import co2_calibration
-from test_calibration.pm_test import pm_cal
-from test_calibration.temp_humi_test import temp_humi_cal
+from test_utils.co2_test import co2_calibration
+from test_utils.pm_test import pm_cal
+from test_utils.temp_humi_test import temp_humi_cal
 from test_report.aircok_report import ReportGeneratorThread
 from test_report.calibration_report import generate_calibration_report as export_calibration_report
+from test_utils.re_cal import load_previous_corrections, apply_correction_merge
 
 
 def resource_path(relative_path):
@@ -75,6 +76,7 @@ class WindowClass(QMainWindow, uic.loadUiType(resource_path("test_ui/test_main_u
         self.prev_button.clicked.connect(self.previous_result)
         self.next_button.clicked.connect(self.next_result)
         self.reset_button.clicked.connect(self.reset)
+        self.re_calibration_button.clicked.connect(self.recalculate_corrections)
 
         self.user_guide_window = None
         self.actionUser_guide.triggered.connect(self.open_user_guide)
@@ -200,17 +202,22 @@ class WindowClass(QMainWindow, uic.loadUiType(resource_path("test_ui/test_main_u
         self.sn_number.setText(os.path.splitext(os.path.basename(current_file))[0])
         self.pm25_cal.setPlainText(",".join([f"*{v}" for _, v in result.get("pm25_correction", [])]))
         self.pm10_cal.setPlainText(",".join([f"*{v}" for _, v in result.get("pm10_correction", [])]))
+
         self.pm25_before_accuracy.setPlainText(f"{result.get('pm25_accuracy_pre', 0):.2f}%")
         self.pm25_after_accuracy.setPlainText(f"{result.get('pm25_accuracy_post', 0):.2f}%")
         self.pm10_before_accuracy.setPlainText(f"{result.get('pm10_accuracy_pre', 0):.2f}%")
         self.pm10_after_accuracy.setPlainText(f"{result.get('pm10_accuracy_post', 0):.2f}%")
+
         self.temp_cal.setPlainText(f"{result.get('temp_correction', 0)}")
         self.humi_cal.setPlainText(f"{result.get('humi_correction', 0)}")
+
         self.temp_before_accuracy.setPlainText(f"{result.get('temp_accuracy', 0):.2f}%")
         self.temp_after_accuracy.setPlainText(f"{result.get('temp_corrected_accuracy', 0):.2f}%")
         self.humi_before_accuracy.setPlainText(f"{result.get('humi_accuracy', 0):.2f}%")
         self.humi_after_accuracy.setPlainText(f"{result.get('humi_corrected_accuracy', 0):.2f}%")
-        self.co2_cal.setPlainText(f"{result.get('co2_correction_str', '')}")
+
+        self.co2_cal.setPlainText(f"{result.get('co2_correction', '')}")
+
         self.co2_before_accuracy.setPlainText(f"{result.get('pre_correction_accuracy', 0):.2f}%")
         self.co2_after_accuracy.setPlainText(f"{result.get('post_correction_accuracy', 0):.2f}%")
 
@@ -299,6 +306,27 @@ class WindowClass(QMainWindow, uic.loadUiType(resource_path("test_ui/test_main_u
         self.progress_dialog.close()
         QMessageBox.critical(self, "오류", f"보고서 생성 중 오류 발생: {error_message}")
         self.thread = None
+
+    def recalculate_corrections(self):
+        if not self.aircok_report:
+            QMessageBox.warning(self, "데이터 없음", "먼저 보정을 완료한 후에 재계산을 진행해주세요.")
+            return
+
+        prev_file, _ = QFileDialog.getOpenFileName(self, "이전 보정 보고서 선택", "", "Excel 파일 (*.xlsx)")
+        if not prev_file:
+            return
+
+        try:
+            prev_data = load_previous_corrections(prev_file)
+            apply_correction_merge(self.aircok_report, prev_data)
+        except Exception as e:
+            QMessageBox.critical(self, "오류", str(e))
+            return
+
+        QMessageBox.information(self, "완료", "누적 보정값이 적용되었습니다.")
+        self.consol.append("보정값 누적 계산 완료. 결과는 화면에 반영되었습니다.")
+        self.display_calibration_result()
+
 
 class UserGuideWindow(QDialog):
     def __init__(self):
