@@ -1,6 +1,6 @@
 import pandas as pd
 
-def co2_calibration(co2_file_path, aircok_file_path):
+def co2_cal(co2_file_path, aircok_file_path):
     co2_data = pd.read_excel(co2_file_path)
     co2_data = co2_data[['Date Time', 'Carbon Dioxide ppm']]
     co2_data.columns = ['date', 'co2']
@@ -26,7 +26,7 @@ def co2_calibration(co2_file_path, aircok_file_path):
     post_acc = 100 - (post_error / corrected['co2'].mean()) * 100
 
     result = {
-        "co2_correction_str": f"{'+' if mean_bias >= 0 else ''}{round(mean_bias, 2)}",
+        "co2_correction_str": f"{'+' if mean_bias >= 0 else ''}{round(mean_bias, 1)}",
         "pre_correction_accuracy": round(pre_acc, 2),
         "post_correction_accuracy": round(post_acc, 2)
     }

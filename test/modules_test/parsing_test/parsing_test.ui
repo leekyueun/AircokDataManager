@@ -55,7 +55,7 @@
   <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
-     <x>290</x>
+     <x>300</x>
      <y>20</y>
      <width>251</width>
      <height>21</height>
@@ -67,7 +67,7 @@
     </font>
    </property>
    <property name="text">
-    <string>LCD 로그 데이터 변환기 사용 방법</string>
+    <string>Aircok Log Converter 사용 방법</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_6">

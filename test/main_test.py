@@ -8,12 +8,14 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 
-from test_utils.co2_test import co2_calibration
-from test_utils.pm_test import pm_cal
-from test_utils.temp_humi_test import temp_humi_cal
-from test_report.aircok_report import ReportGeneratorThread
-from test_report.calibration_report import generate_calibration_report as export_calibration_report
-from test_utils.re_cal import load_previous_corrections, apply_correction_merge
+from calibration_test.co2_test import co2_cal
+from calibration_test.pm_test import pm_cal
+from calibration_test.temp_humi_test import temp_humi_cal
+from report_test.aircok_report_test import ReportGeneratorThread
+from modules_test.parsing_test.lcd_parsing_test import LogConverterApp
+from modules_test.downloader_test.data_downloader_test import DataDownloader
+from src.report.calibration_report import generate_calibration_report as export_calibration_report
+from src.calibration.cumulative_calibration import load_previous_calibration, apply_calibration_merge
 
 
 def resource_path(relative_path):
@@ -44,20 +46,20 @@ class CalibrationThread(QThread):
                 if self.testo_file:
                     file_result.update(temp_humi_cal(self.testo_file, aircok_file))
                 if self.wolfsense_file:
-                    file_result.update(co2_calibration(self.wolfsense_file, aircok_file))
+                    file_result.update(co2_cal(self.wolfsense_file, aircok_file))
                 results[aircok_file] = file_result
                 self.progress.emit(f"{aircok_file} 보정 완료")
             self.finished.emit(results)
         except Exception as e:
             self.error.emit(str(e))
 
-class WindowClass(QMainWindow, uic.loadUiType(resource_path("test_ui/test_main_ui.ui"))[0]):
+class WindowClass(QMainWindow, uic.loadUiType(resource_path("ui_test/main_window_test.ui"))[0]):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
         self.setFixedSize(self.width(), self.height())
-        self.setWindowTitle("Aircok Data Manager v1.0.0-dev.6 (2025.4)")
-        self.setWindowIcon(QIcon(resource_path("../img/smartaircok.png")))
+        self.setWindowTitle("Aircok Data Manager v1.1.1-dev.1")
+        self.setWindowIcon(QIcon(resource_path("img/smartaircok.ico")))
 
         self.grimm_file = None
         self.testo_file = None
@@ -76,7 +78,7 @@ class WindowClass(QMainWindow, uic.loadUiType(resource_path("test_ui/test_main_u
         self.prev_button.clicked.connect(self.previous_result)
         self.next_button.clicked.connect(self.next_result)
         self.reset_button.clicked.connect(self.reset)
-        self.re_calibration_button.clicked.connect(self.recalculate_corrections)
+        self.re_calibration_button.clicked.connect(self.recalculation)
 
         self.user_guide_window = None
         self.actionUser_guide.triggered.connect(self.open_user_guide)
@@ -106,7 +108,6 @@ class WindowClass(QMainWindow, uic.loadUiType(resource_path("test_ui/test_main_u
 
     def open_log_converter(self):
         if not self.log_converter_window:
-            from parsing_test.lcd_parsing import LogConverterApp
             self.log_converter_window = LogConverterApp()
             self.log_converter_window.finished.connect(self.cleanup_log_converter)
         self.log_converter_window.show()
@@ -116,9 +117,8 @@ class WindowClass(QMainWindow, uic.loadUiType(resource_path("test_ui/test_main_u
 
     def open_data_downloader(self):
         if not self.data_downloader_window:
-            from data_download_test.db_download_test import DataDownloader
             self.data_downloader_window = DataDownloader()
-            self.data_downloader_window.setWindowTitle("Aircok Data Extractor")
+            self.data_downloader_window.setWindowTitle("Aircok Data Extractor v1.1.1")
             self.data_downloader_window.setAttribute(Qt.WA_DeleteOnClose)
             self.data_downloader_window.destroyed.connect(self.cleanup_data_downloader)
         self.data_downloader_window.show()
@@ -199,6 +199,7 @@ class WindowClass(QMainWindow, uic.loadUiType(resource_path("test_ui/test_main_u
 
         current_file = self.aircok_files[self.current_file_index]
         result = self.aircok_report.get(current_file, {})
+
         self.sn_number.setText(os.path.splitext(os.path.basename(current_file))[0])
         self.pm25_cal.setPlainText(",".join([f"*{v}" for _, v in result.get("pm25_correction", [])]))
         self.pm10_cal.setPlainText(",".join([f"*{v}" for _, v in result.get("pm10_correction", [])]))
@@ -216,7 +217,7 @@ class WindowClass(QMainWindow, uic.loadUiType(resource_path("test_ui/test_main_u
         self.humi_before_accuracy.setPlainText(f"{result.get('humi_accuracy', 0):.2f}%")
         self.humi_after_accuracy.setPlainText(f"{result.get('humi_corrected_accuracy', 0):.2f}%")
 
-        self.co2_cal.setPlainText(f"{result.get('co2_correction', '')}")
+        self.co2_cal.setPlainText(f"{result.get('co2_correction_str', '')}")
 
         self.co2_before_accuracy.setPlainText(f"{result.get('pre_correction_accuracy', 0):.2f}%")
         self.co2_after_accuracy.setPlainText(f"{result.get('post_correction_accuracy', 0):.2f}%")
@@ -260,7 +261,6 @@ class WindowClass(QMainWindow, uic.loadUiType(resource_path("test_ui/test_main_u
             QMessageBox.information(self, "완료", f"보정 보고서가 저장되었습니다:\n{output_file}")
         except Exception as e:
             QMessageBox.critical(self, "오류", f"파일 저장 중 오류 발생:\n{str(e)}")
-
 
     def generate_aircok_report(self):
         if not self.aircok_files:
@@ -307,7 +307,52 @@ class WindowClass(QMainWindow, uic.loadUiType(resource_path("test_ui/test_main_u
         QMessageBox.critical(self, "오류", f"보고서 생성 중 오류 발생: {error_message}")
         self.thread = None
 
-    def recalculate_corrections(self):
+    def generate_aircok_report(self):
+        if not self.aircok_files:
+            QMessageBox.warning(self, "파일 없음", "먼저 Aircok 파일을 선택해주세요.")
+            return
+
+        output_file, _ = QFileDialog.getSaveFileName(
+            self, "보고서 저장", "aircok_report.xlsx", "Excel 파일 (*.xlsx)"
+        )
+        if not output_file:
+            return
+        if not output_file.endswith(".xlsx"):
+            output_file += ".xlsx"
+
+        self.progress_dialog = QProgressDialog("보고서를 생성 중입니다...", None, 0, 100, self)
+        self.progress_dialog.setWindowTitle("진행 중")
+        self.progress_dialog.setWindowModality(Qt.WindowModal)
+        self.progress_dialog.setCancelButton(None)
+        self.progress_dialog.setMinimumDuration(0)
+        self.progress_dialog.setWindowFlags(self.progress_dialog.windowFlags() & ~Qt.WindowCloseButtonHint)
+        self.progress_dialog.setFixedSize(self.progress_dialog.sizeHint())
+
+        self.progress_dialog.show()
+
+        self.thread = ReportGeneratorThread(self.aircok_files, output_file)
+        self.thread.progress.connect(self._update_report_progress)
+        self.thread.finished.connect(self._report_generation_finished)
+        self.thread.finished.connect(self.thread.deleteLater)
+        self.thread.error.connect(self._report_generation_failed)
+        self.thread.start()
+
+    def _update_report_progress(self, status_text, step_index):
+        self.progress_dialog.setLabelText(status_text)
+        self.progress_dialog.setValue(step_index)
+        QApplication.processEvents()
+
+    def _report_generation_finished(self, file_path):
+        self.progress_dialog.close()
+        QMessageBox.information(self, "성공", f"보고서 생성 완료: {file_path}")
+        self.thread = None
+
+    def _report_generation_failed(self, error_message):
+        self.progress_dialog.close()
+        QMessageBox.critical(self, "오류", f"보고서 생성 중 오류 발생: {error_message}")
+        self.thread = None
+
+    def recalculation(self):
         if not self.aircok_report:
             QMessageBox.warning(self, "데이터 없음", "먼저 보정을 완료한 후에 재계산을 진행해주세요.")
             return
@@ -317,8 +362,8 @@ class WindowClass(QMainWindow, uic.loadUiType(resource_path("test_ui/test_main_u
             return
 
         try:
-            prev_data = load_previous_corrections(prev_file)
-            apply_correction_merge(self.aircok_report, prev_data)
+            prev_data = load_previous_calibration(prev_file)
+            apply_calibration_merge(self.aircok_report, prev_data)
         except Exception as e:
             QMessageBox.critical(self, "오류", str(e))
             return
@@ -327,17 +372,16 @@ class WindowClass(QMainWindow, uic.loadUiType(resource_path("test_ui/test_main_u
         self.consol.append("보정값 누적 계산 완료. 결과는 화면에 반영되었습니다.")
         self.display_calibration_result()
 
-
 class UserGuideWindow(QDialog):
     def __init__(self):
         super().__init__()
-        uic.loadUi(resource_path("test_ui/guide_ui.ui"), self)
+        uic.loadUi(resource_path("ui_test/guide_test.ui"), self)
         self.setWindowTitle("User Guide")
 
 class AboutWindow(QDialog):
     def __init__(self):
         super().__init__()
-        uic.loadUi(resource_path("test_ui/about_ui.ui"), self)
+        uic.loadUi(resource_path("ui_test/about_test.ui"), self)
         self.setWindowTitle("About")
 
 if __name__ == "__main__":

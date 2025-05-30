@@ -804,7 +804,7 @@ p, li { white-space: pre-wrap; }
      </font>
     </property>
     <property name="text">
-     <string>v1.0.0 (2025.04) Developed by 에어콕 기술영업팀</string>
+     <string>v1.1.0 (2025.05) Developed by 에어콕 기술영업팀</string>
     </property>
    </widget>
    <widget class="QTextEdit" name="consol">

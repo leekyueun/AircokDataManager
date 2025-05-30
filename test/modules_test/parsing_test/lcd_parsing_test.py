@@ -97,7 +97,7 @@ class ConvertThread(QThread):
 class LogConverterApp(QDialog):
     def __init__(self):
         super().__init__()
-        ui_path = resource_path("src/extra_features/parsing/parsing_ui.ui")
+        ui_path = resource_path("src/modules_test/parsing_test/parsing_ui.ui_test")
         if not os.path.exists(ui_path):
             raise FileNotFoundError(f"UI 파일이 존재하지 않습니다: {ui_path}")
         loadUi(ui_path, self)

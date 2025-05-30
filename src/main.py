@@ -35,6 +35,11 @@
 #
 # 2025-05-29
 # 누적 보정값 계산 기능 추가
+#
+# 2025-05-30 ~
+# 온습도 단위 버그 수정
+# 파일 폴더 구조 최적화
+# 변수명 최적화
 
 import os
 import sys
@@ -46,14 +51,14 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 
-from calibration.co2 import co2_calibration
-from calibration.pm import pm_cal
-from calibration.temp_humi import temp_humi_cal
-from report.aircok_report import ReportGeneratorThread
-from extra_features.parsing.lcd_parsing import LogConverterApp
-from extra_features.downloader.data_downloader import DataDownloader
-from report.calibration_report import generate_calibration_report as export_calibration_report
-from report.re_cal import load_previous_corrections, apply_correction_merge
+from src.calibration.co2 import co2_cal
+from src.calibration.pm import pm_cal
+from src.calibration.temp_humi import temp_humi_cal
+from src.report.aircok_report import ReportGeneratorThread
+from modules.parsing.lcd_parsing import LogConverterApp
+from modules.downloader.data_downloader import DataDownloader
+from src.report.calibration_report import generate_calibration_report as export_calibration_report
+from src.calibration.cumulative_calibration import load_previous_calibration, apply_calibration_merge
 
 
 def resource_path(relative_path):
@@ -84,14 +89,14 @@ class CalibrationThread(QThread):
                 if self.testo_file:
                     file_result.update(temp_humi_cal(self.testo_file, aircok_file))
                 if self.wolfsense_file:
-                    file_result.update(co2_calibration(self.wolfsense_file, aircok_file))
+                    file_result.update(co2_cal(self.wolfsense_file, aircok_file))
                 results[aircok_file] = file_result
                 self.progress.emit(f"{aircok_file} 보정 완료")
             self.finished.emit(results)
         except Exception as e:
             self.error.emit(str(e))
 
-class WindowClass(QMainWindow, uic.loadUiType(resource_path("ui/aircok_cal_ui.ui"))[0]):
+class WindowClass(QMainWindow, uic.loadUiType(resource_path("ui/main_window.ui"))[0]):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
@@ -116,7 +121,7 @@ class WindowClass(QMainWindow, uic.loadUiType(resource_path("ui/aircok_cal_ui.ui
         self.prev_button.clicked.connect(self.previous_result)
         self.next_button.clicked.connect(self.next_result)
         self.reset_button.clicked.connect(self.reset)
-        self.re_calibration_button.clicked.connect(self.recalculate_corrections)
+        self.re_calibration_button.clicked.connect(self.recalculation)
 
         self.user_guide_window = None
         self.actionUser_guide.triggered.connect(self.open_user_guide)
@@ -237,20 +242,26 @@ class WindowClass(QMainWindow, uic.loadUiType(resource_path("ui/aircok_cal_ui.ui
 
         current_file = self.aircok_files[self.current_file_index]
         result = self.aircok_report.get(current_file, {})
+
         self.sn_number.setText(os.path.splitext(os.path.basename(current_file))[0])
         self.pm25_cal.setPlainText(",".join([f"*{v}" for _, v in result.get("pm25_correction", [])]))
         self.pm10_cal.setPlainText(",".join([f"*{v}" for _, v in result.get("pm10_correction", [])]))
+
         self.pm25_before_accuracy.setPlainText(f"{result.get('pm25_accuracy_pre', 0):.2f}%")
         self.pm25_after_accuracy.setPlainText(f"{result.get('pm25_accuracy_post', 0):.2f}%")
         self.pm10_before_accuracy.setPlainText(f"{result.get('pm10_accuracy_pre', 0):.2f}%")
         self.pm10_after_accuracy.setPlainText(f"{result.get('pm10_accuracy_post', 0):.2f}%")
+
         self.temp_cal.setPlainText(f"{result.get('temp_correction', 0)}")
         self.humi_cal.setPlainText(f"{result.get('humi_correction', 0)}")
+
         self.temp_before_accuracy.setPlainText(f"{result.get('temp_accuracy', 0):.2f}%")
         self.temp_after_accuracy.setPlainText(f"{result.get('temp_corrected_accuracy', 0):.2f}%")
         self.humi_before_accuracy.setPlainText(f"{result.get('humi_accuracy', 0):.2f}%")
         self.humi_after_accuracy.setPlainText(f"{result.get('humi_corrected_accuracy', 0):.2f}%")
+
         self.co2_cal.setPlainText(f"{result.get('co2_correction_str', '')}")
+
         self.co2_before_accuracy.setPlainText(f"{result.get('pre_correction_accuracy', 0):.2f}%")
         self.co2_after_accuracy.setPlainText(f"{result.get('post_correction_accuracy', 0):.2f}%")
 
@@ -384,7 +395,7 @@ class WindowClass(QMainWindow, uic.loadUiType(resource_path("ui/aircok_cal_ui.ui
         QMessageBox.critical(self, "오류", f"보고서 생성 중 오류 발생: {error_message}")
         self.thread = None
 
-    def recalculate_corrections(self):
+    def recalculation(self):
         if not self.aircok_report:
             QMessageBox.warning(self, "데이터 없음", "먼저 보정을 완료한 후에 재계산을 진행해주세요.")
             return
@@ -394,8 +405,8 @@ class WindowClass(QMainWindow, uic.loadUiType(resource_path("ui/aircok_cal_ui.ui
             return
 
         try:
-            prev_data = load_previous_corrections(prev_file)
-            apply_correction_merge(self.aircok_report, prev_data)
+            prev_data = load_previous_calibration(prev_file)
+            apply_calibration_merge(self.aircok_report, prev_data)
         except Exception as e:
             QMessageBox.critical(self, "오류", str(e))
             return
@@ -407,13 +418,13 @@ class WindowClass(QMainWindow, uic.loadUiType(resource_path("ui/aircok_cal_ui.ui
 class UserGuideWindow(QDialog):
     def __init__(self):
         super().__init__()
-        uic.loadUi(resource_path("ui/guide_ui.ui"), self)
+        uic.loadUi(resource_path("ui/guide.ui"), self)
         self.setWindowTitle("User Guide")
 
 class AboutWindow(QDialog):
     def __init__(self):
         super().__init__()
-        uic.loadUi(resource_path("ui/about_ui.ui"), self)
+        uic.loadUi(resource_path("ui/about.ui"), self)
         self.setWindowTitle("About")
 
 if __name__ == "__main__":

@@ -2,14 +2,13 @@ import os
 import pandas as pd
 from PyQt5.QtCore import QThread, pyqtSignal
 
-# 날짜 포맷
+
 def format_date_columns(df):
     if 'date' in df.columns:
         df['date'] = pd.to_datetime(df['date'], errors='coerce')
         df = df.dropna(subset=['date'])
     return df
 
-# 센서별 시트 준비
 def prepare_simple_sheet(sensor_name, dfs, file_labels):
     merged_df = pd.DataFrame()
     valid_labels = []
@@ -36,7 +35,6 @@ def prepare_simple_sheet(sensor_name, dfs, file_labels):
     merged_df = merged_df.drop(columns=['date'])
     return merged_df[['Date', 'Time'] + valid_labels]
 
-# 센서 정렬 순서
 def get_ordered_sensors(dfs):
     priority_order = ['pm2.5', 'pm10', 'temp', 'humi', 'hcho', 'noise', 'co2', 'co', 'vocs', 'no2']
     all_sensors = {col for df in dfs for col in df.columns if col != 'date'}
@@ -44,7 +42,6 @@ def get_ordered_sensors(dfs):
     remaining = sorted(all_sensors - set(ordered))
     return ordered + remaining
 
-# 요약 시트 생성 (파일명 = SN 기준)
 def prepare_summary_sheet(dfs, file_labels):
     summary_rows = []
 
@@ -62,7 +59,6 @@ def prepare_summary_sheet(dfs, file_labels):
         return summary_df[cols]
     return pd.DataFrame()
 
-# 메인 저장 함수
 def merge_and_save_aircok_files(file_paths, output_file, update_callback=None):
     dfs, file_labels = [], []
 
@@ -90,7 +86,6 @@ def merge_and_save_aircok_files(file_paths, output_file, update_callback=None):
             if update_callback:
                 update_callback(f"센서 시트 생성: {sensor}", len(file_paths) + idx)
 
-        # 평균 요약 시트 생성
         summary_df = prepare_summary_sheet(dfs, file_labels)
         if not summary_df.empty:
             summary_df.to_excel(writer, sheet_name='Summary_by_SN', index=False)
@@ -102,7 +97,6 @@ def merge_and_save_aircok_files(file_paths, output_file, update_callback=None):
             if update_callback:
                 update_callback(f"원본 시트 저장: {label}", len(file_paths) + len(sensor_columns) + i)
 
-# QThread 백그라운드 처리
 class ReportGeneratorThread(QThread):
     progress = pyqtSignal(str, int)
     finished = pyqtSignal(str)

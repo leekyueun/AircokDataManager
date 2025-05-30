@@ -2,7 +2,7 @@ import os
 import re
 import pandas as pd
 
-def load_previous_corrections(xlsx_file):
+def load_previous_calibration(xlsx_file):
     try:
         xl = pd.ExcelFile(xlsx_file)
         sheet_name = "보정값"
@@ -12,7 +12,7 @@ def load_previous_corrections(xlsx_file):
     except Exception as e:
         raise RuntimeError(f"보정 리포트를 불러올 수 없습니다: {str(e)}")
 
-    corrections = {}
+    calibrations = {}
     for _, row in df.iterrows():
         sn = str(row.get("SN"))
         if not sn or sn.strip() in ["보정 전", "보정 후"]:
@@ -27,7 +27,7 @@ def load_previous_corrections(xlsx_file):
             except:
                 return 0.0
 
-        corrections[sn] = {
+        calibrations[sn] = {
             "pm25": parse_list(row.get("pm2.5", "")),
             "pm10": parse_list(row.get("pm10", "")),
             "temp": parse_float(row.get("temp", 0)),
@@ -35,10 +35,10 @@ def load_previous_corrections(xlsx_file):
             "co2": str(row.get("co2", "") or "")
         }
 
-    return corrections
+    return calibrations
 
 
-def apply_correction_merge(current_report, previous_data):
+def apply_calibration_merge(current_report, previous_data):
     def safe_float(v):
         try:
             return float(v)
@@ -49,7 +49,6 @@ def apply_correction_merge(current_report, previous_data):
         sn = os.path.splitext(os.path.basename(file_path))[0]
         prev = previous_data.get(sn, {})
 
-        # PM 보정값: 소수점 반올림만 처리
         for key in ["pm25", "pm10"]:
             cur_items = result.get(f"{key}_correction", [])
             cur_list = [safe_float(val) for _, val in cur_items]
@@ -60,7 +59,6 @@ def apply_correction_merge(current_report, previous_data):
             else:
                 result[f"{key}_correction"] = [(i, round(v, 2)) for i, v in enumerate(cur_list)]
 
-        # 나머지: 문자열 +.2f 형식
         for key in ["temp", "humi", "co2"]:
             cur_val = result.get(f"{key}_correction", 0)
             prev_val = prev.get(key, 0)

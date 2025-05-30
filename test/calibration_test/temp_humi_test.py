@@ -24,7 +24,7 @@ def calculate_correction(true_avg, raw_avg, values, tolerance=0.01):
         corrected_mean = corrected.mean()
         corrected_error = abs(true_avg - corrected_mean) / true_avg * 100
         corrected_accuracy = 100 - corrected_error
-        correction_str = f"{'+' if correction >= 0 else ''}{round(correction, 2)}"
+        correction_str = f"{'+' if correction >= 0 else ''}{round(correction * 10, 1)}"
     return corrected, correction_str, round(corrected_accuracy, 2)
 
 def temp_humi_cal(testo_file_path, aircok_file_path):

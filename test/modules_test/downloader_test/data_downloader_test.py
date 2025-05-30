@@ -13,7 +13,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.exc import ProgrammingError
 from dotenv import load_dotenv
 
-load_dotenv()
+base_dir = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(base_dir, ".env"))
 
 class ProgressDialog(QDialog):
     def __init__(self, total, parent=None):
@@ -46,7 +47,7 @@ def resource_path(relative_path):
 class DataDownloader(QWidget):
     def __init__(self):
         super().__init__()
-        ui_path = resource_path('test/data_download_test/downloader_ui_test.ui')
+        ui_path = resource_path('src/modules_test/downloader_test/data_downloader_ui.ui_test')
         loadUi(ui_path, self)
 
         self.dateTimeEdit.setCalendarPopup(True)
