@@ -47,7 +47,7 @@ def resource_path(relative_path):
 class DataDownloader(QWidget):
     def __init__(self):
         super().__init__()
-        ui_path = resource_path('src/modules_test/downloader_test/data_downloader_ui.ui_test')
+        ui_path = resource_path('test/modules_test/downloader_test/data_downloader_test.ui')
         loadUi(ui_path, self)
 
         self.dateTimeEdit.setCalendarPopup(True)

@@ -14,9 +14,8 @@ from calibration_test.temp_humi_test import temp_humi_cal
 from report_test.aircok_report_test import ReportGeneratorThread
 from modules_test.parsing_test.lcd_parsing_test import LogConverterApp
 from modules_test.downloader_test.data_downloader_test import DataDownloader
-from src.report.calibration_report import generate_calibration_report as export_calibration_report
-from src.calibration.cumulative_calibration import load_previous_calibration, apply_calibration_merge
-
+from report_test.calibration_report_test import generate_calibration_report as export_calibration_report
+from calibration_test.cumulative_calibration_test import load_previous_calibration, apply_calibration_merge
 
 def resource_path(relative_path):
     if hasattr(sys, '_MEIPASS'):
@@ -53,12 +52,12 @@ class CalibrationThread(QThread):
         except Exception as e:
             self.error.emit(str(e))
 
-class WindowClass(QMainWindow, uic.loadUiType(resource_path("ui_test/main_window_test.ui"))[0]):
+class WindowClass(QMainWindow, uic.loadUiType(resource_path("ui/main_window.ui"))[0]):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
         self.setFixedSize(self.width(), self.height())
-        self.setWindowTitle("Aircok Data Manager v1.1.1-dev.1")
+        self.setWindowTitle("Aircok Data Manager v1.1.0 (2025.05)")
         self.setWindowIcon(QIcon(resource_path("img/smartaircok.ico")))
 
         self.grimm_file = None
@@ -375,13 +374,13 @@ class WindowClass(QMainWindow, uic.loadUiType(resource_path("ui_test/main_window
 class UserGuideWindow(QDialog):
     def __init__(self):
         super().__init__()
-        uic.loadUi(resource_path("ui_test/guide_test.ui"), self)
+        uic.loadUi(resource_path("ui/guide.ui"), self)
         self.setWindowTitle("User Guide")
 
 class AboutWindow(QDialog):
     def __init__(self):
         super().__init__()
-        uic.loadUi(resource_path("ui_test/about_test.ui"), self)
+        uic.loadUi(resource_path("ui/about.ui"), self)
         self.setWindowTitle("About")
 
 if __name__ == "__main__":
