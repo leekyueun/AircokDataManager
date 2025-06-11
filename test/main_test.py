@@ -52,12 +52,12 @@ class CalibrationThread(QThread):
         except Exception as e:
             self.error.emit(str(e))
 
-class WindowClass(QMainWindow, uic.loadUiType(resource_path("ui/main_window.ui"))[0]):
+class WindowClass(QMainWindow, uic.loadUiType(resource_path("ui_test/main_window_test.ui"))[0]):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
         self.setFixedSize(self.width(), self.height())
-        self.setWindowTitle("Aircok Data Manager v1.1.0 (2025.05)")
+        self.setWindowTitle("Aircok Data Manager v1.1.1.dev1")
         self.setWindowIcon(QIcon(resource_path("img/smartaircok.ico")))
 
         self.grimm_file = None
@@ -374,13 +374,13 @@ class WindowClass(QMainWindow, uic.loadUiType(resource_path("ui/main_window.ui")
 class UserGuideWindow(QDialog):
     def __init__(self):
         super().__init__()
-        uic.loadUi(resource_path("ui/guide.ui"), self)
+        uic.loadUi(resource_path("ui_test/guide_test.ui"), self)
         self.setWindowTitle("User Guide")
 
 class AboutWindow(QDialog):
     def __init__(self):
         super().__init__()
-        uic.loadUi(resource_path("ui/about.ui"), self)
+        uic.loadUi(resource_path("ui_test/about_test.ui"), self)
         self.setWindowTitle("About")
 
 if __name__ == "__main__":
