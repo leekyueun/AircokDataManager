@@ -36,10 +36,9 @@
 # 2025-05-29
 # 누적 보정값 계산 기능 추가
 #
-# 2025-05-30 ~
+# 2025-06-11
 # 온습도 단위 버그 수정
 # 파일 폴더 구조 최적화
-# 변수명 최적화
 
 import os
 import sys
@@ -101,7 +100,7 @@ class WindowClass(QMainWindow, uic.loadUiType(resource_path("ui/main_window.ui")
         super().__init__()
         self.setupUi(self)
         self.setFixedSize(self.width(), self.height())
-        self.setWindowTitle("Aircok Data Manager v1.1.0 (2025.05)")
+        self.setWindowTitle("Aircok Data Manager v1.1.1 (2025.06)")
         self.setWindowIcon(QIcon(resource_path("img/smartaircok.ico")))
 
         self.grimm_file = None
