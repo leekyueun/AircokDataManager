@@ -32,7 +32,6 @@ class ProgressDialog(QDialog):
         self.layout.addWidget(self.progress)
         self.setLayout(self.layout)
 
-        # X 버튼 비활성화
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowCloseButtonHint)
 
     def update_progress(self, value, current_filename):
