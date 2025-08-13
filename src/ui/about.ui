@@ -93,6 +93,9 @@
 
          v1.0.0-alpha
          - 최초 버전 보정 기능만 작동
+
+         치명적인 버그를 발견한다면 kylee@ethree.co.kr 로 메일을 보내주시기
+         바랍니다.
         </string>
        </property>
        <property name="textFormat">
@@ -157,7 +160,7 @@
     </font>
    </property>
    <property name="text">
-    <string>Aircok Data Manager v1.0.0 (2025.04)</string>
+    <string>Aircok Data Manager v1.1.1 (2025.05)</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignCenter</set>

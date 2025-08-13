@@ -46,7 +46,7 @@ def pm_cal(grimm_file_path, aircok_file_path):
             X_25 = subset_25[['pm2.5', 'pm10']]
             y_25 = subset_25['grimm_pm25'] / subset_25['pm2.5']
             factor_25 = train_and_predict_correction_factor(X_25, y_25)
-            if factor_25:
+            if factor_25 is not None:
                 correction_factors_pm25.append((label, factor_25))
                 merged.loc[merged['pm25_range'] == label, 'corrected_pm25'] = subset_25['pm2.5'] * factor_25
 
@@ -56,9 +56,11 @@ def pm_cal(grimm_file_path, aircok_file_path):
             X_10 = subset_10[['pm2.5', 'pm10']]
             y_10 = subset_10['grimm_pm10'] / subset_10['pm10']
             factor_10 = train_and_predict_correction_factor(X_10, y_10)
-            if factor_10:
+            if factor_10 is not None:
                 correction_factors_pm10.append((label, factor_10))
-                merged.loc[merged['pm10_range'] == label, 'corrected_pm10'] = subset_10['pm10'] * factor_10
+                merged.loc[merged['pm10_range'] == label, 'corrected_pm10'] = (
+                        merged.loc[merged['pm10_range'] == label, 'pm10'] * factor_10
+                )
 
     merged = merged.dropna(subset=['corrected_pm25', 'corrected_pm10'])
 

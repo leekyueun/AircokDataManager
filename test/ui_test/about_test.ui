@@ -51,11 +51,11 @@
       <widget class="QLabel" name="versionHistoryLabel">
        <property name="text">
         <string>
-         쓰레기 프로그램 v4.0.4
+         개발 및 테스트용 버전
 
-         이 버전에서 일어나는 일들은 쓰레기같은 일 뿐이다.
+         아마도 버그 투성이의 버전
 
-         버그를 찾아 개발자에게 보여준다면 쌍욕이 날라올지도 모릅니다.
+         버그를 찾으시오
         </string>
        </property>
        <property name="textFormat">
@@ -120,7 +120,7 @@
     </font>
    </property>
    <property name="text">
-    <string>궁극의 개발자 버전 v4.0.4</string>
+    <string>개발용 버전</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignCenter</set>
