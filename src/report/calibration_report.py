@@ -13,7 +13,7 @@ def to_float_safe(value):
 def generate_calibration_report(results: dict, output_file: str):
     wb = Workbook()
     ws = wb.active
-    ws.title = "전체 평균"
+    ws.title = "보정값"
 
     headers = ["SN", "pm2.5", "pm10", "temp", "humi", "co2"]
     ws.append(headers)

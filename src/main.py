@@ -39,6 +39,10 @@
 # 2025-06-11
 # 온습도 단위 버그 수정
 # 파일 폴더 구조 최적화
+#
+# 2025-08-10
+# 미세먼지 보정 기능 추가
+# 그래프 출력 기능 추가
 
 import os
 import sys
@@ -58,6 +62,7 @@ from modules.parsing.lcd_parsing import LogConverterApp
 from modules.downloader.data_downloader import DataDownloader
 from src.report.calibration_report import generate_calibration_report as export_calibration_report
 from src.calibration.cumulative_calibration import load_previous_calibration, apply_calibration_merge
+from utils.compare_graph import GraphCompareDialog
 
 
 def resource_path(relative_path):
@@ -100,7 +105,7 @@ class WindowClass(QMainWindow, uic.loadUiType(resource_path("ui/main_window.ui")
         super().__init__()
         self.setupUi(self)
         self.setFixedSize(self.width(), self.height())
-        self.setWindowTitle("Aircok Data Manager v1.1.1 (2025.06)")
+        self.setWindowTitle("Aircok Data Manager v1.2.0 (2025.08)")
         self.setWindowIcon(QIcon(resource_path("img/smartaircok.ico")))
 
         self.grimm_file = None
@@ -121,6 +126,7 @@ class WindowClass(QMainWindow, uic.loadUiType(resource_path("ui/main_window.ui")
         self.next_button.clicked.connect(self.next_result)
         self.reset_button.clicked.connect(self.reset)
         self.re_calibration_button.clicked.connect(self.recalculation)
+        self.graph_button.clicked.connect(self.open_compare_graph)
 
         self.user_guide_window = None
         self.actionUser_guide.triggered.connect(self.open_user_guide)
@@ -413,6 +419,19 @@ class WindowClass(QMainWindow, uic.loadUiType(resource_path("ui/main_window.ui")
         QMessageBox.information(self, "완료", "누적 보정값이 적용되었습니다.")
         self.consol.append("보정값 누적 계산 완료. 결과는 화면에 반영되었습니다.")
         self.display_calibration_result()
+
+    def open_compare_graph(self):
+        if not self.aircok_files:
+            QMessageBox.warning(self, "파일 없음", "먼저 Aircok 파일을 선택해주세요.")
+            return
+        dlg = GraphCompareDialog(
+            self,
+            aircok_file=self.aircok_files[self.current_file_index],
+            grimm_file=self.grimm_file,
+            testo_file=self.testo_file,
+            wolfsense_file=self.wolfsense_file
+        )
+        dlg.show()
 
 class UserGuideWindow(QDialog):
     def __init__(self):

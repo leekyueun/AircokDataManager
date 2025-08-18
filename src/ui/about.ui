@@ -51,6 +51,10 @@
       <widget class="QLabel" name="versionHistoryLabel">
        <property name="text">
         <string>
+         v1.2.0
+         - PM 보정 시 단순 곱셈, XGBoost, MLP 3가지 방식 비교 후 최적 방식 자동 선택 기능 추가
+         - 비교 그래프 출력 기능 추가
+
          v1.1.1
          - 온습도 단위 오류 수정
          - 구조 최적화
@@ -160,7 +164,7 @@
     </font>
    </property>
    <property name="text">
-    <string>Aircok Data Manager v1.1.1 (2025.05)</string>
+    <string>Aircok Data Manager v1.2.0 (2025.08)</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignCenter</set>

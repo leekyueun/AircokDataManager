@@ -694,6 +694,13 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QPushButton" name="graph_button">
+       <property name="text">
+        <string>그래프 출력</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </widget>
    <widget class="QLabel" name="label_16">
@@ -804,7 +811,7 @@ p, li { white-space: pre-wrap; }
      </font>
     </property>
     <property name="text">
-     <string>v1.1.1 (2025.06) Developed by 에어콕 기술영업팀</string>
+     <string>v1.2.0 (2025.08) Developed by 에어콕 기술영업팀</string>
     </property>
    </widget>
    <widget class="QTextEdit" name="consol">
