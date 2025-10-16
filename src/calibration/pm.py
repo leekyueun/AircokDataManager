@@ -25,7 +25,7 @@ def prepare_aircok_data(path):
     df = pd.read_csv(path, usecols=['date', 'pm2.5', 'pm10'])
     df['date'] = pd.to_datetime(df['date'], errors='coerce')
     df['pm2.5'] = pd.to_numeric(df['pm2.5'], errors='coerce')
-    df['pm10']  = pd.to_numeric(df['pm10'], errors='coerce')
+    df['pm10']  = pd.to_numeric(df['pm10'],  errors='coerce')
     return df.dropna()
 
 def calc_accuracy(true, pred, eps=1e-9):
@@ -124,6 +124,16 @@ def pm_cal(grimm_file_path, aircok_file_path):
                 methods_pm25.append((label, best_name, round(best_acc, 2)))
                 best_corr_vals = best_corr.values if isinstance(best_corr, pd.Series) else best_corr
                 merged.loc[idx25, 'corrected_pm25'] = best_corr_vals
+            else:
+                print(f" >> 선택됨: default (factor=1.00, acc=0.00%)")
+                correction_factors_pm25.append((label, 1.0))
+                methods_pm25.append((label, "default", 0.0))
+                merged.loc[idx25, 'corrected_pm25'] = sensor_25.values
+        else:
+            print(f"\n[PM2.5] 구간: {label} (샘플 0)")
+            print(f" >> 선택됨: default (factor=1.00, acc=0.00%)")
+            correction_factors_pm25.append((label, 1.0))
+            methods_pm25.append((label, "default", 0.0))
 
         idx10 = merged.index[merged['pm10_range'] == label]
         if len(idx10) > 0:
@@ -153,6 +163,16 @@ def pm_cal(grimm_file_path, aircok_file_path):
                 methods_pm10.append((label, best_name, round(best_acc, 2)))
                 best_corr_vals = best_corr.values if isinstance(best_corr, pd.Series) else best_corr
                 merged.loc[idx10, 'corrected_pm10'] = best_corr_vals
+            else:
+                print(f" >> 선택됨: default (factor=1.00, acc=0.00%)")
+                correction_factors_pm10.append((label, 1.0))
+                methods_pm10.append((label, "default", 0.0))
+                merged.loc[idx10, 'corrected_pm10'] = sensor_10.values
+        else:
+            print(f"\n[PM10 ] 구간: {label} (샘플 0)")
+            print(f" >> 선택됨: default (factor=1.00, acc=0.00%)")
+            correction_factors_pm10.append((label, 1.0))
+            methods_pm10.append((label, "default", 0.0))
 
     merged = merged.dropna(subset=['corrected_pm25', 'corrected_pm10'])
 

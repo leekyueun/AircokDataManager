@@ -43,6 +43,10 @@
 # 2025-08-10
 # 미세먼지 보정 기능 추가
 # 그래프 출력 기능 추가
+#
+# 2025-10-16
+# 미세먼지 보정 오류 수정
+# 데이터 다운로더 DB  수정
 
 import os
 import sys
@@ -105,7 +109,7 @@ class WindowClass(QMainWindow, uic.loadUiType(resource_path("ui/main_window.ui")
         super().__init__()
         self.setupUi(self)
         self.setFixedSize(self.width(), self.height())
-        self.setWindowTitle("Aircok Data Manager v1.2.0 (2025.08)")
+        self.setWindowTitle("Aircok Data Manager v1.2.1 (2025.10)")
         self.setWindowIcon(QIcon(resource_path("img/smartaircok.ico")))
 
         self.grimm_file = None
@@ -166,7 +170,7 @@ class WindowClass(QMainWindow, uic.loadUiType(resource_path("ui/main_window.ui")
     def open_data_downloader(self):
         if not self.data_downloader_window:
             self.data_downloader_window = DataDownloader()
-            self.data_downloader_window.setWindowTitle("Aircok Data Extractor v1.1.1")
+            self.data_downloader_window.setWindowTitle("Aircok Data Extractor v1.1.2")
             self.data_downloader_window.setAttribute(Qt.WA_DeleteOnClose)
             self.data_downloader_window.destroyed.connect(self.cleanup_data_downloader)
         self.data_downloader_window.show()

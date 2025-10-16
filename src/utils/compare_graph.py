@@ -9,7 +9,6 @@ from PyQt5.QtGui import QFont
 import pyqtgraph as pg
 import pyqtgraph.exporters  # PNG 내보내기
 
-# --------- 공통 유틸 ---------
 def _read_csv_guess(path):
     for enc in ["utf-8-sig", "cp949", "utf-8"]:
         try:
@@ -29,7 +28,6 @@ def _setup_plot(plot):
     plot.setBackground("w")
     plot.showGrid(x=True, y=True, alpha=0.25)
 
-    # 축 글꼴/색 설정(검은색, 진하게)
     font = QFont()
     font.setPointSize(9)
     font.setWeight(QFont.DemiBold)
@@ -40,7 +38,6 @@ def _setup_plot(plot):
         ax.setTextPen('k')
         ax.setTickFont(font)
 
-    # 범례
     legend = plot.addLegend()
     try:
         legend.setLabelTextColor('k')
@@ -56,9 +53,9 @@ def _plot_triple(plot, df, tcol, ref_col, raw_col, corr_col, title,
     df = df.sort_values(tcol).dropna(subset=[tcol])
     x = df[tcol].astype("int64") // 10**9
 
-    PEN_REF  = pg.mkPen((220, 0,   0),   width=3)                    # 빨강
-    PEN_RAW  = pg.mkPen((0,   90,  255), width=3, style=Qt.DashLine) # 파랑(점선)
-    PEN_CORR = pg.mkPen((0,   160, 0),   width=3)                    # 초록
+    PEN_REF  = pg.mkPen((220, 0,   0),   width=3)
+    PEN_RAW  = pg.mkPen((0,   90,  255), width=3, style=Qt.DashLine)
+    PEN_CORR = pg.mkPen((0,   160, 0),   width=3)
 
     if ref_col in df.columns:
         y = pd.to_numeric(df[ref_col], errors="coerce")
@@ -78,9 +75,7 @@ def _plot_triple(plot, df, tcol, ref_col, raw_col, corr_col, title,
         if m.any():
             plot.plot(x[m], y[m], name=names[2], pen=PEN_CORR)
 
-# --------- 데이터 구성 ---------
 def build_pm_series(grimm_file, aircok_file):
-    # Grimm
     g = pd.read_csv(grimm_file, encoding='ISO-8859-1', skiprows=12, sep='\t', header=None)
     g.columns = ['datetime', 'pm10', 'pm2.5', 'pm1', 'inhalable', 'thoracic', 'alveolic']
     g = g[['datetime', 'pm10', 'pm2.5']].rename(
@@ -92,7 +87,6 @@ def build_pm_series(grimm_file, aircok_file):
     g['grimm_pm10'] = pd.to_numeric(g['grimm_pm10'], errors='coerce')
     g = g.dropna()
 
-    # Aircok
     a = _read_csv_guess(aircok_file)
     a = a[['date', 'pm2.5', 'pm10']].copy()
     a['date'] = pd.to_datetime(a['date'], errors='coerce')
@@ -108,7 +102,7 @@ def build_pm_series(grimm_file, aircok_file):
     m['pm10_range'] = pd.cut(m['pm10'],  bins=bins, labels=labels, right=True, include_lowest=True)
 
     def apply_range_factor(raw, ref, rng):
-        out = raw.astype(float).copy()  # dtype 경고 방지
+        out = raw.astype(float).copy()
         for lab in labels:
             idx = (rng == lab)
             if not idx.any():
@@ -131,7 +125,6 @@ def build_pm_series(grimm_file, aircok_file):
 
     return m[['date','grimm_pm25','pm25_raw','pm25_corr','grimm_pm10','pm10_raw','pm10_corr']].copy()
 
-# --- Testo CSV 로더: 세미콜론, 오전/오후 → AM/PM, 포맷 명시 ---
 def load_testo_data(path):
     df = pd.read_csv(path, sep=";")[['날짜', '습도[%RH]', '온도[°C]']]
     df.columns = ['date', 'humidity', 'temperature']
@@ -145,11 +138,8 @@ def load_testo_data(path):
     return df.dropna(subset=['date', 'humidity', 'temperature'])
 
 def build_temp_humi_series(testo_file, aircok_file):
-    """온습도: 기준값=Testo(세미콜론 CSV), 보정전=Aircok, 보정후=평균 편차 보정"""
-    # Testo 로드 (네가 준 포맷 그대로)
     t = load_testo_data(testo_file)
 
-    # Aircok 로드 (date/temp/humi 필요)
     a = _read_csv_guess(aircok_file)
     required = {'date', 'temp', 'humi'}
     if not required.issubset(set(a.columns)):
@@ -162,12 +152,10 @@ def build_temp_humi_series(testo_file, aircok_file):
     a['humi'] = pd.to_numeric(a['humi'], errors='coerce')
     a = a.dropna(subset=['date', 'temp', 'humi'])
 
-    # 병합
     m = pd.merge(t, a, on='date', how='inner').dropna().copy()
     if m.empty:
         raise ValueError("Testo와 Aircok의 시간대가 맞는 교집합이 없습니다. (5분 단위 반올림 기준)")
 
-    # 평균 바이어스 보정
     temp_bias = (m['temperature'] - m['temp']).mean()
     humi_bias = (m['humidity']    - m['humi']).mean()
 
@@ -177,8 +165,6 @@ def build_temp_humi_series(testo_file, aircok_file):
     m['humi_corr'] = m['humi'] + humi_bias
 
     return m[['date','temperature','temp_raw','temp_corr','humidity','humi_raw','humi_corr']].copy()
-
-
 
 def build_co2_series(wolfsense_file, aircok_file):
     w = pd.read_excel(wolfsense_file)
@@ -199,23 +185,21 @@ def build_co2_series(wolfsense_file, aircok_file):
 
     return m[['date','co2_ref','co2_raw','co2_corr']].copy()
 
-# --------- 다이얼로그 ---------
 class GraphCompareDialog(QDialog):
     def __init__(
         self,
         parent=None,
-        aircok_file=None,          # 단일 파일 모드(호환용)
+        aircok_file=None,
         grimm_file=None,
         testo_file=None,
         wolfsense_file=None,
-        aircok_files=None,         # 여러 파일
+        aircok_files=None,
         start_index: int = 0
     ):
         super().__init__(parent)
         self.setWindowTitle("그래프 비교")
         self.resize(1200, 680)
 
-        # 파일 세트 설정
         if aircok_files and len(aircok_files) > 0:
             self.aircok_files = aircok_files
             self.idx = max(0, min(start_index, len(aircok_files) - 1))
@@ -230,7 +214,6 @@ class GraphCompareDialog(QDialog):
         self.plot = pg.PlotWidget()
         _setup_plot(self.plot)
 
-        # 상단 바: 파일 탐색 + 항목 선택
         top = QHBoxLayout()
         self.info = QLabel("-")
 
@@ -242,7 +225,6 @@ class GraphCompareDialog(QDialog):
         self.btn_redraw = QPushButton("다시 그리기")
         self.btn_export = QPushButton("PNG로 저장")
 
-        # 파일 콤보 채우기 (전체 경로 표시, 한 번에 많이 보이도록)
         self.file_combo.clear()
         self.file_combo.addItems(self.aircok_files)
         self.file_combo.setMaxVisibleItems(min(len(self.aircok_files), 50))
@@ -269,19 +251,17 @@ class GraphCompareDialog(QDialog):
         lay.addLayout(top)
         lay.addWidget(self.plot)
 
-        # 시그널
         self.btn_redraw.clicked.connect(self.redraw)
         self.btn_export.clicked.connect(self.export_png)
         self.sel.currentIndexChanged.connect(self.redraw)
         self.btn_prev.clicked.connect(self._go_prev)
         self.btn_next.clicked.connect(self._go_next)
-        self.file_combo.activated.connect(self._go_index)  # 한 번 클릭으로 바로 전환
+        self.file_combo.activated.connect(self._go_index)
 
         self._install_key_nav()
         self._sync_file_ui()
         self.redraw()
 
-    # ---- 파일 네비게이션 ----
     def _current_aircok_file(self):
         if not self.aircok_files:
             return None
@@ -328,7 +308,6 @@ class GraphCompareDialog(QDialog):
         self._f = _Filter(self)
         self.installEventFilter(self._f)
 
-    # ---- 그리기 ----
     def redraw(self):
         try:
             current_aircok = self._current_aircok_file()
@@ -368,7 +347,6 @@ class GraphCompareDialog(QDialog):
             self.plot.clear()
             self.plot.setTitle(f"오류: {e}")
 
-    # ---- 내보내기 ----
     def export_png(self):
         path, _ = QFileDialog.getSaveFileName(self, "PNG로 저장", "graph.png", "PNG Files (*.png)")
         if not path:

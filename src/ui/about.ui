@@ -51,8 +51,12 @@
       <widget class="QLabel" name="versionHistoryLabel">
        <property name="text">
         <string>
+         v1.2.1
+         - PM 보정 시 발생하는 오류 수정
+         - 데이터 다운로더 DB 수정
+
          v1.2.0
-         - PM 보정 시 단순 곱셈, XGBoost, MLP 3가지 방식 비교 후 최적 방식 자동 선택 기능 추가
+         - PM 보정 시 3가지 보정 방식 비교후 최적 방식 자동 선택 기능 추가
          - 비교 그래프 출력 기능 추가
 
          v1.1.1
